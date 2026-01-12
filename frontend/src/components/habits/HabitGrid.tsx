@@ -68,15 +68,17 @@ export default function HabitGrid() {
 
   return (
     <>
-      <Card className="p-6 md:p-8 overflow-x-auto shadow-md border-gray-200 bg-white">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
+      <Card className="p-6 md:p-8 shadow-md border-gray-200 bg-white max-w-full overflow-hidden">
+       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 max-w-full">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">December</h1>
             <p className="text-sm md:text-base text-gray-600 mt-2">
               Track your daily habits • {habits.length} active habit{habits.length !== 1 ? "s" : ""}
             </p>
           </div>
+          <div className=" mr-20">
           <AddHabitDialog onAdd={addHabit} />
+          </div>
         </div>
 
         <div className="overflow-x-auto">
