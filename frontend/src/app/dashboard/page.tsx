@@ -1,10 +1,11 @@
-import HabitGrid from "@/components/ui/habits/HabitGrid";
+import HabitGrid from "@/components/habits/HabitGrid";
 
 export default function DashboardPage() {
   return (
-    <div className="p6">
-      <h1 className="text-3xl font-bold mb-6">Your Habits</h1>
-      <HabitGrid/>
-    </div>
+     <main className="min-h-screen bg-white p-4 md:p-8">
+      <div className="max-w-7xl mx-auto">
+        <HabitGrid />
+      </div>
+    </main>
   );
 }
