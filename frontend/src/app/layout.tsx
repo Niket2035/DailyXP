@@ -1,5 +1,6 @@
 import { Toaster } from "@/components/ui/sonner";
 import "./globals.css";
+import Navbar from "@/components/common/navbar";
 
 export default function RootLayout({
   children,
@@ -9,6 +10,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body>
+        <Navbar/>
         {children}
         <Toaster />
       </body>
