@@ -21,21 +21,49 @@ import {
 import AddHabitDialog from "./AddHabitDialog";
 import HabitRow from "./HabitRow";
 
-const weeks = [
-  { label: "Week 1", days: [1, 2, 3, 4, 5, 6, 7] },
-  { label: "Week 2", days: [8, 9, 10, 11, 12, 13, 14] },
-  { label: "Week 3", days: [15, 16, 17, 18, 19, 20, 21] },
-  { label: "Week 4", days: [22, 23, 24, 25, 26, 27, 28] },
-  { label: "Week 5", days: [29, 30] },
-];
-
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
-const getDayName = (dayNumber: number) => {
-  return dayNames[(dayNumber - 1) % 7];
+
+const getMonthDaysAndWeeks = () => {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = now.getMonth();
+  const today = now.getDate();
+
+  const firstDay = new Date(year, month, 1);
+  const lastDay = new Date(year, month + 1, 0);
+  const daysInMonth = lastDay.getDate();
+  const startingDayOfWeek = firstDay.getDay();
+
+  const allDays: Array<{ day: number; dayName: string; isToday: boolean }> = [];
+
+  for (let i = 1; i <= daysInMonth; i++) {
+    const date = new Date(year, month, i);
+    const dayOfWeek = date.getDay();
+    allDays.push({
+      day: i,
+      dayName: dayNames[dayOfWeek],
+      isToday: i === today,
+    });
+  }
+
+  const weeks: Array<{ label: string; days: typeof allDays }> = [];
+  for (let i = 0; i < allDays.length; i += 7) {
+    const weekNumber = Math.floor(i / 7) + 1;
+    weeks.push({
+      label: `Week ${weekNumber}`,
+      days: allDays.slice(i, i + 7),
+    });
+  }
+
+  return { allDays, weeks, today, month, year };
 };
-const allDays = weeks.flatMap((w) => w.days);
 
 export default function HabitGrid() {
+  const { allDays, weeks, today, month, year } = getMonthDaysAndWeeks();
+
+  const monthName = new Date(year, month).toLocaleString("default", {
+    month: "long",
+  });
   const [habits, setHabits] = useState<string[]>([
     "Wake Up Early",
     "Exercise",
@@ -51,6 +79,9 @@ export default function HabitGrid() {
     index: null,
   });
   const { toast } = useToast();
+  const [checked, setChecked] = useState<
+    Record<string, Record<number, boolean>>
+  >({});
 
   const addHabit = (title: string) => {
     setHabits((prev) => [...prev, title]);
@@ -79,26 +110,40 @@ export default function HabitGrid() {
     }
     setDeleteConfirm({ open: false, habit: null, index: null });
   };
+  const toggleDay = (habit: string, day: number) => {
+    setChecked((prev) => {
+      const habitMap = prev[habit] || {};
+      return {
+        ...prev,
+        [habit]: {
+          ...habitMap,
+          [day]: !habitMap[day],
+        },
+      };
+    });
+  };
 
   return (
     <>
-      <Card className="p-6 md:p-8 shadow-md border-gray-200 bg-white max-w-full overflow-hidden">
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8 max-w-full">
+      <Card
+        className="p-6 md:p-8 shadow-md border-gray-200 bg-white"
+      >
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
-              December
+              {monthName} {year}
             </h1>
             <p className="text-sm md:text-base text-gray-600 mt-2">
-              Track your daily habits • {habits.length} active habit
+              Today is {monthName} {today} • {habits.length} active habit
               {habits.length !== 1 ? "s" : ""}
             </p>
           </div>
-          <div className=" mr-20">
+          <div className="mr-20">
             <AddHabitDialog onAdd={addHabit} />
           </div>
         </div>
 
-        <div className="overflow-x-auto">
+        <div className="">
           <Table>
             <TableHeader>
               <TableRow className="border-b-2 border-gray-300 hover:bg-transparent">
@@ -120,23 +165,31 @@ export default function HabitGrid() {
               </TableRow>
 
               <TableRow className="border-b border-gray-300 hover:bg-transparent">
-                {allDays.map((d) => (
+                {allDays.map((dayObj) => (
                   <TableHead
-                    key={`day-${d}`}
-                    className="text-center min-w-[40px] text-xs font-medium text-gray-600"
+                    key={`day-${dayObj.day}`}
+                    className={`text-center min-w-[40px] text-xs font-medium ${
+                      dayObj.isToday
+                        ? "text-blue-600 font-bold"
+                        : "text-gray-600"
+                    }`}
                   >
-                    {d}
+                    {dayObj.day}
                   </TableHead>
                 ))}
               </TableRow>
 
               <TableRow className="border-b-2 border-gray-300 hover:bg-transparent">
-                {allDays.map((d) => (
+                {allDays.map((dayObj) => (
                   <TableHead
-                    key={`dayname-${d}`}
-                    className="text-center min-w-[40px] text-xs font-semibold text-gray-500"
+                    key={`dayname-${dayObj.day}`}
+                    className={`text-center min-w-[40px] text-xs font-semibold ${
+                      dayObj.isToday
+                        ? "text-blue-600 font-bold bg-blue-50"
+                        : "text-gray-500"
+                    }`}
                   >
-                    {getDayName(d)}
+                    {dayObj.dayName}
                   </TableHead>
                 ))}
               </TableRow>
@@ -148,6 +201,9 @@ export default function HabitGrid() {
                   key={i}
                   habit={h}
                   days={allDays}
+                  today={today}
+                  checked={checked[h] || {}}
+                  onToggle={(day) => toggleDay(h, day)}
                   onDelete={() => handleDeleteHabit(i, h)}
                 />
               ))}
