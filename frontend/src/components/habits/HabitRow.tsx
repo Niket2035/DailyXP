@@ -4,6 +4,7 @@ import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
+import Progress from "./progress";
 
 export default function HabitRow({
   habit,
@@ -23,6 +24,7 @@ export default function HabitRow({
   const [isHovering, setIsHovering] = useState(false);
 
   return (
+    <>
     <TableRow
       className="border-b hover:bg-gray-50"
       onMouseEnter={() => setIsHovering(true)}
@@ -67,5 +69,6 @@ export default function HabitRow({
         );
       })}
     </TableRow>
+ </>
   );
 }
