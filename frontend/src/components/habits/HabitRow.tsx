@@ -4,7 +4,7 @@ import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
 import { X } from "lucide-react";
-import Progress from "./progress";
+
 
 export default function HabitRow({
   habit,
@@ -46,7 +46,6 @@ export default function HabitRow({
         const isToday = d.day === today;
         const isChecked = checked[d.day] || false;
         const isDisabled = !isToday;
-
         return (
           <TableCell
             key={d.day}

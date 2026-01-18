@@ -24,7 +24,7 @@ export default function SleepChart({ data }: { data: SleepData[] }) {
           <LineChart data={data}>
             <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
             <XAxis dataKey="date" />
-            <YAxis domain={[0, 24]} />
+            <YAxis domain={[0, 16]} />
             <Tooltip formatter={(value) => [`${value ?? 0}h`, "Sleep"]} />
             <Line
               type="monotone"

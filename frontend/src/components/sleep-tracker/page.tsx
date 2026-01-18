@@ -26,7 +26,6 @@ export default function SleepPage() {
     year: "numeric",
   });
 
-  // Init month data
   useEffect(() => {
     const currentMonth = today.getMonth();
     const currentYear = today.getFullYear();
@@ -96,7 +95,6 @@ export default function SleepPage() {
 
   return (
     <div className="w-full space-y-6">
-      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold text-gray-900">Sleep Tracker</h2>

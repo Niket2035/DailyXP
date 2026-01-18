@@ -22,6 +22,9 @@ export default function AddSleepCard({
   onAdd: () => void;
   today: number;
 }) {
+  const hours = parseFloat(sleepHours);
+  const isValid = sleepHours === "" || (hours >= 0 && hours <= 16);
+
   return (
     <Card className="border border-gray-200 bg-white">
       <CardHeader>
@@ -37,16 +40,23 @@ export default function AddSleepCard({
             <Input
               type="number"
               min="0"
-              max="24"
+              max="16"
               step="0.5"
               value={sleepHours}
               onChange={(e) => setSleepHours(e.target.value)}
               placeholder="Enter hours (e.g., 7.5)"
+              className={!isValid ? "border-red-500" : ""}
             />
+            {!isValid && (
+              <p className="text-xs text-red-500 mt-1">
+                Sleep hours must be between 0 and 16
+              </p>
+            )}
           </div>
           <Button
             onClick={onAdd}
-            className="gap-2 bg-gray-900 hover:bg-gray-800 text-white"
+            disabled={!isValid || sleepHours === ""}
+            className="gap-2 bg-gray-900 hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >
             <Plus className="w-4 h-4" />
             Add
