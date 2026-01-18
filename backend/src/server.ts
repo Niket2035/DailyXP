@@ -3,7 +3,7 @@ import app from "./app";
 import { connectDB } from "./config/db";
 
 dotenv.config();
-// connectDB();   we use dataabse after the UI madeup
+connectDB();  
 
 const PORT = process.env.PORT || 5001;
 app.get("/", (req, res) => {
