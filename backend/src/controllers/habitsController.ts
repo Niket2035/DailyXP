@@ -17,10 +17,20 @@ export const createHabit = async (req: Request, res: Response) => {
 };
 
 export const getAllHabits = async (req: Request, res: Response) => {
-    try{
-        const habits=await Habits.find();
-        res.status(200).json(habits);
-    }catch(error){
-        res.status(500).json({ error: error });
-    }
-}
+  try {
+    const habits = await Habits.find();
+    res.status(200).json(habits);
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+
+export const deleteHabit = async (req: Request, res: Response) => {
+  try {
+    const { id } = req.params;
+    await Habits.findByIdAndDelete(id);
+    res.status(200).json({ message: "Habit deleted successfully" });
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
