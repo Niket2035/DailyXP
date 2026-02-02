@@ -1,4 +1,3 @@
-"use client";
 
 import {
   Card,
@@ -10,6 +9,8 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
+import { useEffect, useState } from "react";
+import { on } from "events";
 
 export default function AddSleepCard({
   sleepHours,
@@ -24,6 +25,30 @@ export default function AddSleepCard({
 }) {
   const hours = parseFloat(sleepHours);
   const isValid = sleepHours === "" || (hours >= 0 && hours <= 16);
+  const [sleep, setSleep] = useState("");
+
+  const postSleepData = async () => {
+    if (!sleepHours || !isValid) return;
+    try {
+      const res = await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}api/sleepTrackers`, {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+        },
+        body: JSON.stringify({
+          hoursSlept: parseFloat(sleepHours),
+          sleepdate: new Date().toISOString(),
+        }),
+      });
+      if (!res.ok) {
+        throw new Error("Failed to add sleep entry");
+      }
+      onAdd();
+      console.log("Sleep entry added successfully");
+    } catch (error) {
+      console.error("Error adding sleep entry:", error);
+    }
+  };
 
   return (
     <Card className="border border-gray-200 bg-white">
@@ -54,7 +79,7 @@ export default function AddSleepCard({
             )}
           </div>
           <Button
-            onClick={onAdd}
+            onClick={postSleepData}
             disabled={!isValid || sleepHours === ""}
             className="gap-2 bg-gray-900 hover:bg-gray-800 text-white disabled:opacity-50 disabled:cursor-not-allowed"
           >

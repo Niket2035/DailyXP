@@ -20,19 +20,20 @@ export default function SleepPage() {
 
   const today = new Date();
   const todayDate = today.getDate();
+  const currentMonth = today.getMonth();
+  const currentYear = today.getFullYear();
 
   const monthName = today.toLocaleDateString("en-US", {
     month: "long",
     year: "numeric",
   });
 
+  const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+
   useEffect(() => {
-    const currentMonth = today.getMonth();
-    const currentYear = today.getFullYear();
     const daysInMonth = new Date(currentYear, currentMonth + 1, 0).getDate();
     const firstDay = new Date(currentYear, currentMonth, 1).getDay();
 
-    const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
     const data: SleepData[] = [];
 
     for (let i = 1; i <= daysInMonth; i++) {
@@ -47,6 +48,49 @@ export default function SleepPage() {
     setSleepData(data);
   }, []);
 
+  useEffect(() => {
+    const fetchSleepData = async () => {
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}api/sleepTrackers`,
+        );
+
+        if (!res.ok) throw new Error("Failed to fetch sleep data");
+
+        const Data = await res.json();
+
+        setSleepData((prev) =>
+          prev.map((dayItem) => {
+            const match = Data.find((entry: any) => {
+              const d = new Date(entry.sleepdate);
+              return (
+                d.getUTCDate() === dayItem.date &&
+                d.getUTCMonth() === currentMonth &&
+                d.getUTCFullYear() === currentYear
+              );
+            });
+
+            if (!match) return dayItem;
+
+            const d = new Date(match.sleepdate);
+
+            return {
+              ...dayItem,
+              hours: Number(match.hoursSlept),
+              day: days[d.getUTCDay()],
+            };
+          }),
+        );
+      } catch (error) {
+        console.error("Error fetching sleep data:", error);
+      }
+    };
+
+    if (sleepData.length > 0) {
+      fetchSleepData();
+    }
+  }, [sleepData.length]);
+
   const handleAddSleep = () => {
     if (!sleepHours) {
       toast({
@@ -58,7 +102,8 @@ export default function SleepPage() {
     }
 
     const hours = Number.parseFloat(sleepHours);
-    if (hours < 0 || hours > 24) {
+
+    if (hours < 0 || hours > 24 || Number.isNaN(hours)) {
       toast({
         title: "Invalid Input",
         description: "Sleep hours must be between 0 and 24",
@@ -68,9 +113,7 @@ export default function SleepPage() {
     }
 
     setSleepData((prev) =>
-      prev.map((item) =>
-        item.date === todayDate ? { ...item, hours } : item
-      )
+      prev.map((item) => (item.date === todayDate ? { ...item, hours } : item)),
     );
 
     toast({
@@ -90,8 +133,8 @@ export default function SleepPage() {
       : "0";
 
   const daysTracked = sleepData.filter((d) => d.hours > 0).length;
-  const todaySleep =
-    sleepData.find((d) => d.date === todayDate)?.hours || 0;
+
+  const todaySleep = sleepData.find((d) => d.date === todayDate)?.hours || 0;
 
   return (
     <div className="w-full space-y-6">
