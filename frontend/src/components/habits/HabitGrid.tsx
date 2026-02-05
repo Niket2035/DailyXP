@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import AddHabitDialog from "./AddHabitDialog";
 import HabitRow from "./HabitRow";
+import { Habit } from "@/types/Habit";
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -64,33 +65,33 @@ export default function HabitGrid() {
   const monthName = new Date(year, month).toLocaleString("default", {
     month: "long",
   });
- const [habits, setHabits] = useState<string[]>([]);
+  const [habits, setHabits] = useState<Habit[]>([]);
   useEffect(() => {
     const fetchHabits = async () => {
-      try{
-        const res=await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}api/habits`);
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits`,
+        );
 
-        if(!res.ok) throw new Error("Failed to fetch habits");
+        if (!res.ok) throw new Error("Failed to fetch habits");
 
-        const data=await res.json();
-        setHabits(data.map((habit: any) => habit.name));
-
-      }catch(error){
+        const data = await res.json();
+        setHabits(data);
+      } catch (error) {
         console.error("Error fetching habits:", error);
       }
     };
     fetchHabits();
   }, []);
 
-console.log("Fetched habits:", habits);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     habit: string | null;
-    index: number | null;
+    id: string | null;
   }>({
     open: false,
     habit: null,
-    index: null,
+    id: null,
   });
   const { toast } = useToast();
   const [checked, setChecked] = useState<
@@ -98,32 +99,59 @@ console.log("Fetched habits:", habits);
   >({});
 
   const addHabit = (title: string) => {
-    setHabits((prev) => [...prev, title]);
+    const newHabit: Habit = {
+      _id: Math.random().toString(36).substr(2, 9),
+      name: title,
+      status: "pending",
+      date: new Date().toISOString(),
+    };
+    setHabits((prev) => [...prev, newHabit]);
     toast({
       title: "Habit added",
       description: `"${title}" has been added to your habits.`,
     });
   };
 
-  const handleDeleteHabit = (index: number, habit: string) => {
+  const handleDeleteHabit = (id: string, habit: string) => {
     setDeleteConfirm({
       open: true,
       habit,
-      index,
+      id,
     });
   };
+  const confirmDelete = async () => {
+    if (deleteConfirm.id === null) return;
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/${deleteConfirm.id}`,
+        {
+          method: "DELETE",
+        },
+      );
 
-  const confirmDelete = () => {
-    if (deleteConfirm.index !== null) {
-      const deletedHabit = habits[deleteConfirm.index];
-      setHabits((prev) => prev.filter((_, i) => i !== deleteConfirm.index));
+      if (!res.ok) throw new Error("Failed to delete habit");
+
+      setHabits((prev) =>
+        prev.filter((habit) => habit._id !== deleteConfirm.id),
+      );
+
       toast({
         title: "Habit deleted",
-        description: `"${deletedHabit}" has been removed.`,
+        description: `"${deleteConfirm.habit}" has been removed.`,
+      });
+    } catch (error) {
+      console.error("Delete error:", error);
+
+      toast({
+        title: "Error",
+        description: "Failed to delete habit",
+        variant: "destructive",
       });
     }
-    setDeleteConfirm({ open: false, habit: null, index: null });
+
+    setDeleteConfirm({ open: false, habit: null, id: null });
   };
+
   const toggleDay = (habit: string, day: number) => {
     setChecked((prev) => {
       const habitMap = prev[habit] || {};
@@ -139,9 +167,7 @@ console.log("Fetched habits:", habits);
 
   return (
     <>
-      <Card
-        className="p-6 md:p-8 shadow-md border-gray-200 bg-white"
-      >
+      <Card className="p-6 md:p-8 shadow-md border-gray-200 bg-white">
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-8">
           <div>
             <h1 className="text-3xl md:text-4xl font-bold text-gray-900">
@@ -212,13 +238,13 @@ console.log("Fetched habits:", habits);
             <TableBody>
               {habits.map((h, i) => (
                 <HabitRow
-                  key={i}
-                  habit={h}
+                  key={h._id}
+                  habit={h.name}
                   days={allDays}
                   today={today}
-                  checked={checked[h] || {}}
-                  onToggle={(day) => toggleDay(h, day)}
-                  onDelete={() => handleDeleteHabit(i, h)}
+                  checked={checked[h.name] || {}}
+                  onToggle={(day) => toggleDay(h.name, day)}
+                  onDelete={() => handleDeleteHabit(h._id, h.name)}
                 />
               ))}
             </TableBody>
@@ -237,8 +263,7 @@ console.log("Fetched habits:", habits);
       <AlertDialog
         open={deleteConfirm.open}
         onOpenChange={(open) => {
-          if (!open)
-            setDeleteConfirm({ open: false, habit: null, index: null });
+          if (!open) setDeleteConfirm({ open: false, habit: null, id: null });
         }}
       >
         <AlertDialogContent className="bg-white border-gray-200">

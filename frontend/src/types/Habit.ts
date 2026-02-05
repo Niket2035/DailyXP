@@ -1,4 +1,6 @@
 export type Habit = {
   _id: string;
-  title: string;
+  name: string;
+  status: "pending" | "completed";
+  date: string;
 };
