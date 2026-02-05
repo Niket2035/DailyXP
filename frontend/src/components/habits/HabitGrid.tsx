@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -64,11 +64,25 @@ export default function HabitGrid() {
   const monthName = new Date(year, month).toLocaleString("default", {
     month: "long",
   });
-  const [habits, setHabits] = useState<string[]>([
-    "Wake Up Early",
-    "Exercise",
-    "DSA",
-  ]);
+ const [habits, setHabits] = useState<string[]>([]);
+  useEffect(() => {
+    const fetchHabits = async () => {
+      try{
+        const res=await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}api/habits`);
+
+        if(!res.ok) throw new Error("Failed to fetch habits");
+
+        const data=await res.json();
+        setHabits(data.map((habit: any) => habit.name));
+
+      }catch(error){
+        console.error("Error fetching habits:", error);
+      }
+    };
+    fetchHabits();
+  }, []);
+
+console.log("Fetched habits:", habits);
   const [deleteConfirm, setDeleteConfirm] = useState<{
     open: boolean;
     habit: string | null;
