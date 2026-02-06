@@ -14,3 +14,14 @@ export const updateHabitStatus = async (req: Request, res: Response) => {
     res.status(500).json({ error: error });
   }
 };
+
+export const getHabitTracking = async (req: Request, res: Response) => {
+  try {
+    const { habitId } = req.params;
+    const tracking = await habitsTrackingModel.find({ habitId });
+    res.status(200).json(tracking);
+  } catch (error) {
+    res.status(500).json({ error: error });
+  }
+};
+

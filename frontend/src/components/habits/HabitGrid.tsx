@@ -94,7 +94,7 @@ export default function HabitGrid() {
     id: null,
   });
   const { toast } = useToast();
-  type DayStatus = "none" | "partial" | "complete";
+  type DayStatus = "missed" | "partial" | "complete";
 
 const [checked, setChecked] = useState<
   Record<string, Record<number, DayStatus>>
@@ -155,27 +155,52 @@ const [checked, setChecked] = useState<
     setDeleteConfirm({ open: false, habit: null, id: null });
   };
 
-const toggleDay = (habitId: string, day: number) => {
-  setChecked(prev => {
-    const habitMap = prev[habitId] || {};
-    const current = habitMap[day] || "none";
+const toggleDay = async (habitId: string, day: number) => {
+  const currentStatus = checked[habitId]?.[day] || "missed";
 
-    let next: "none" | "partial" | "complete";
+  let nextStatus: DayStatus;
 
-    if (current === "none") next = "partial";
-    else if (current === "partial") next = "complete";
-    else next = "none";
+  if (currentStatus === "missed") nextStatus = "partial";
+  else if (currentStatus === "partial") nextStatus = "complete";
+  else nextStatus = "missed";
 
-    return {
+  try {
+
+    const selectedDate = new Date(year, month, day);
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/tracking`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          habitId,
+          date: selectedDate,
+          status: nextStatus,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to update habit tracking");
+
+    setChecked((prev) => ({
       ...prev,
       [habitId]: {
-        ...habitMap,
-        [day]: next,
+        ...prev[habitId],
+        [day]: nextStatus,
       },
-    };
-  });
+    }));
+  } catch (error) {
+    console.error("Toggle error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to update habit",
+      variant: "destructive",
+    });
+  }
 };
-
 
   return (
     <>
