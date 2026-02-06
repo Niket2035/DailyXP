@@ -25,3 +25,19 @@ export const getHabitTracking = async (req: Request, res: Response) => {
   }
 };
 
+export const getHabitTrackingByMonth = async (req: Request, res: Response) => {
+  try {
+    const { month, year } = req.query;
+
+    const start = new Date(Number(year), Number(month), 1);
+    const end = new Date(Number(year), Number(month) + 1, 0, 23, 59, 59);
+
+    const data = await habitsTrackingModel.find({
+      date: { $gte: start, $lte: end },
+    });
+
+    res.status(200).json(data);
+  } catch (error) {
+    res.status(500).json({ error });
+  }
+};
