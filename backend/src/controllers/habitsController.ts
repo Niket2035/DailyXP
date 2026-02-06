@@ -6,8 +6,6 @@ export const createHabit = async (req: Request, res: Response) => {
     const { name, status, date } = req.body;
     const newHabit = new Habits({
       name,
-      status,
-      date,
     });
     await newHabit.save();
     res.status(201).json(newHabit);
@@ -41,7 +39,7 @@ export const updateHabit = async (req: Request, res: Response) => {
     const { name, status, date } = req.body;
     const updateHabit = await Habits.findByIdAndUpdate(
       id,
-      { name, status, date },
+      { name },
       { new: true },
     );
     res.status(200).json(updateHabit);

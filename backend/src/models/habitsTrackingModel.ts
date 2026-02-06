@@ -1,0 +1,15 @@
+import { model, Mongoose, Schema } from "mongoose";
+
+const HabitsTrackingSchema = new Schema({
+  habitId: { type: Schema.Types.ObjectId, ref: "Habits", required: true },
+  date: { type: Date, required: true },
+  status: {
+    type: String,
+    enum: ["complete", "partial", "missed"],
+    default: "missed",
+  },
+});
+
+HabitsTrackingSchema.index({ habitId: 1, date: 1 }, { unique: true });
+
+export default model("HabitsTracking", HabitsTrackingSchema);

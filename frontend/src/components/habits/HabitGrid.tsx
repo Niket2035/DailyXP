@@ -94,9 +94,12 @@ export default function HabitGrid() {
     id: null,
   });
   const { toast } = useToast();
-  const [checked, setChecked] = useState<
-    Record<string, Record<number, boolean>>
-  >({});
+  type DayStatus = "missed" | "partial" | "complete";
+
+const [checked, setChecked] = useState<
+  Record<string, Record<number, DayStatus>>
+>({});
+
 
   const addHabit = (title: string) => {
     const newHabit: Habit = {
@@ -152,18 +155,52 @@ export default function HabitGrid() {
     setDeleteConfirm({ open: false, habit: null, id: null });
   };
 
-  const toggleDay = (habit: string, day: number) => {
-    setChecked((prev) => {
-      const habitMap = prev[habit] || {};
-      return {
-        ...prev,
-        [habit]: {
-          ...habitMap,
-          [day]: !habitMap[day],
+const toggleDay = async (habitId: string, day: number) => {
+  const currentStatus = checked[habitId]?.[day] || "missed";
+
+  let nextStatus: DayStatus;
+
+  if (currentStatus === "missed") nextStatus = "partial";
+  else if (currentStatus === "partial") nextStatus = "complete";
+  else nextStatus = "missed";
+
+  try {
+
+    const selectedDate = new Date(year, month, day);
+
+    const res = await fetch(
+      `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/tracking`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
         },
-      };
+        body: JSON.stringify({
+          habitId,
+          date: selectedDate,
+          status: nextStatus,
+        }),
+      }
+    );
+
+    if (!res.ok) throw new Error("Failed to update habit tracking");
+
+    setChecked((prev) => ({
+      ...prev,
+      [habitId]: {
+        ...prev[habitId],
+        [day]: nextStatus,
+      },
+    }));
+  } catch (error) {
+    console.error("Toggle error:", error);
+    toast({
+      title: "Error",
+      description: "Failed to update habit",
+      variant: "destructive",
     });
-  };
+  }
+};
 
   return (
     <>
@@ -242,8 +279,8 @@ export default function HabitGrid() {
                   habit={h.name}
                   days={allDays}
                   today={today}
-                  checked={checked[h.name] || {}}
-                  onToggle={(day) => toggleDay(h.name, day)}
+                  checked={checked[h._id] || {}}
+                  onToggle={(day) => toggleDay(h._id, day)}
                   onDelete={() => handleDeleteHabit(h._id, h.name)}
                 />
               ))}
