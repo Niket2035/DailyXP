@@ -94,9 +94,12 @@ export default function HabitGrid() {
     id: null,
   });
   const { toast } = useToast();
-  const [checked, setChecked] = useState<
-    Record<string, Record<number, boolean>>
-  >({});
+  type DayStatus = "none" | "partial" | "complete";
+
+const [checked, setChecked] = useState<
+  Record<string, Record<number, DayStatus>>
+>({});
+
 
   const addHabit = (title: string) => {
     const newHabit: Habit = {
@@ -152,18 +155,27 @@ export default function HabitGrid() {
     setDeleteConfirm({ open: false, habit: null, id: null });
   };
 
-  const toggleDay = (habit: string, day: number) => {
-    setChecked((prev) => {
-      const habitMap = prev[habit] || {};
-      return {
-        ...prev,
-        [habit]: {
-          ...habitMap,
-          [day]: !habitMap[day],
-        },
-      };
-    });
-  };
+const toggleDay = (habitId: string, day: number) => {
+  setChecked(prev => {
+    const habitMap = prev[habitId] || {};
+    const current = habitMap[day] || "none";
+
+    let next: "none" | "partial" | "complete";
+
+    if (current === "none") next = "partial";
+    else if (current === "partial") next = "complete";
+    else next = "none";
+
+    return {
+      ...prev,
+      [habitId]: {
+        ...habitMap,
+        [day]: next,
+      },
+    };
+  });
+};
+
 
   return (
     <>
@@ -242,8 +254,8 @@ export default function HabitGrid() {
                   habit={h.name}
                   days={allDays}
                   today={today}
-                  checked={checked[h.name] || {}}
-                  onToggle={(day) => toggleDay(h.name, day)}
+                  checked={checked[h._id] || {}}
+                  onToggle={(day) => toggleDay(h._id, day)}
                   onDelete={() => handleDeleteHabit(h._id, h.name)}
                 />
               ))}

@@ -3,8 +3,7 @@
 import { useState } from "react";
 import { TableCell, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { X } from "lucide-react";
-
+import { X, Check, CircleDashed } from "lucide-react";
 
 export default function HabitRow({
   habit,
@@ -17,7 +16,7 @@ export default function HabitRow({
   habit: string;
   days: Array<{ day: number; dayName: string; isToday: boolean }>;
   today: number;
-  checked: Record<number, boolean>;
+  checked: Record<number, "complete" | "partial" | "none">;
   onToggle: (day: number) => void;
   onDelete: () => void;
 }) {
@@ -25,49 +24,57 @@ export default function HabitRow({
 
   return (
     <>
-    <TableRow
-      className="border-b hover:bg-gray-50"
-      onMouseEnter={() => setIsHovering(true)}
-      onMouseLeave={() => setIsHovering(false)}
-    >
+      <TableRow
+        className="border-b hover:bg-gray-50"
+        onMouseEnter={() => setIsHovering(true)}
+        onMouseLeave={() => setIsHovering(false)}
+      >
+        <TableCell className="font-semibold min-w-[220px] border-r pr-2">
+          <div className="flex justify-between items-center">
+            <span>{habit}</span>
+            {isHovering && (
+              <button
+                onClick={onDelete}
+                className="p-1 hover:bg-red-50 rounded"
+              >
+                <X className="w-4 h-4 text-red-600" />
+              </button>
+            )}
+          </div>
+        </TableCell>
 
-      <TableCell className="font-semibold min-w-[220px] border-r pr-2">
-        <div className="flex justify-between items-center">
-          <span>{habit}</span>
-          {isHovering && (
-            <button onClick={onDelete} className="p-1 hover:bg-red-50 rounded">
-              <X className="w-4 h-4 text-red-600" />
-            </button>
-          )}
-        </div>
-      </TableCell>
-
-      {days.map((d) => {
-        const isToday = d.day === today;
-        const isChecked = checked[d.day] || false;
-        const isDisabled = !isToday;
-        return (
-          <TableCell
-            key={d.day}
-            className={cn("text-center", isToday && "bg-blue-50")}
-          >
-            <button
-              disabled={isDisabled}
-              onClick={() => onToggle(d.day)}
-              className={cn(
-                "w-7 h-7 rounded-md border-2 transition",
-                isDisabled && "opacity-40 cursor-not-allowed",
-                !isDisabled && "hover:scale-110",
-                isChecked
-                  ? "bg-emerald-500 border-emerald-600"
-                  : "bg-gray-100 border-gray-300",
-                isToday && !isChecked && "border-blue-400"
-              )}
-            />
-          </TableCell>
-        );
-      })}
-    </TableRow>
- </>
+        {days.map((d) => {
+          const isToday = d.day === today;
+          const status = checked[d.day] || "none";
+          const isDisabled = !isToday;
+          return (
+            <TableCell
+              key={d.day}
+              className={cn("text-center", isToday && "bg-blue-50")}
+            >
+              <button
+                disabled={isDisabled}
+                onClick={() => onToggle(d.day)}
+                className={cn(
+                  "w-8 h-8 rounded-md border-2 flex items-center justify-center transition",
+                  isDisabled && "opacity-40 cursor-not-allowed",
+                  !isDisabled && "hover:scale-110",
+                  status === "complete" &&
+                    "bg-emerald-500 border-emerald-600 text-white",
+                  status === "partial" &&
+                    "bg-orange-400 border-orange-500 text-white",
+                  status === "none" && "bg-red-100 border-red-300 text-red-600",
+                  isToday && status === "none" && "border-blue-400",
+                )}
+              >
+                {status === "complete" && <Check className="w-4 h-4" />}
+                {status === "partial" && <CircleDashed className="w-4 h-4" />}
+                {status === "none" && <X className="w-4 h-4" />}
+              </button>
+            </TableCell>
+          );
+        })}
+      </TableRow>
+    </>
   );
 }
