@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
+  const [pass, setpass] = useState("");
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -51,6 +53,19 @@ export default function RegisterPage() {
               className="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-50  focus:ring-2 focus:ring-black dark:focus:ring-white outline-none"
             />
           </div>
+          <div>
+            <label className="block text-sm font-medium ">
+              Password
+            </label>
+            <input
+              type="password"
+              placeholder="xxxxx"
+              value={pass}
+              onChange={(e) => setpass(e.target.value)}
+              required
+              className="mt-1 w-full px-4 py-2 border rounded-lg bg-gray-50  focus:ring-2 focus:ring-black dark:focus:ring-white outline-none"
+            />
+          </div>
 
            <button
             type="submit"
@@ -74,9 +89,9 @@ export default function RegisterPage() {
 
         <p className="text-sm text-center mt-6 text-gray-600 dark:text-gray-400">
           Already have an account?{" "}
-          <a href="/login" className="font-medium hover:underline">
+          <Link href="/account/login" className="font-medium hover:underline">
             Login
-          </a>
+          </Link>
         </p>
       </div>
     </div>
