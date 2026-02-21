@@ -21,6 +21,7 @@ import {
 import AddHabitDialog from "./AddHabitDialog";
 import HabitRow from "./HabitRow";
 import { Habit } from "@/types/Habit";
+import ConfirmDialog from "../common/ConfirmDialog";
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
@@ -108,36 +109,34 @@ export default function HabitGrid() {
   // };
 
   const fetchTracking = async () => {
-  try {
-    const res = await fetch(
-      `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/tracking/month?month=${month}&year=${year}`
-    );
+    try {
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/tracking/month?month=${month}&year=${year}`,
+      );
 
-    if (!res.ok) throw new Error("Failed to fetch tracking");
+      if (!res.ok) throw new Error("Failed to fetch tracking");
 
-    const data = await res.json();
+      const data = await res.json();
 
-    const trackingMap: Record<string, Record<number, DayStatus>> = {};
+      const trackingMap: Record<string, Record<number, DayStatus>> = {};
 
-    data.forEach((item: any) => {
-      const dateObj = new Date(item.date);
-      const day = dateObj.getDate();
-      const habitId = item.habitId;
+      data.forEach((item: any) => {
+        const dateObj = new Date(item.date);
+        const day = dateObj.getDate();
+        const habitId = item.habitId;
 
-      if (!trackingMap[habitId]) {
-        trackingMap[habitId] = {};
-      }
+        if (!trackingMap[habitId]) {
+          trackingMap[habitId] = {};
+        }
 
-      trackingMap[habitId][day] = item.status;
-    });
+        trackingMap[habitId][day] = item.status;
+      });
 
-    setChecked(trackingMap);
-
-  } catch (error) {
-    console.error("Tracking fetch error:", error);
-  }
-};
-
+      setChecked(trackingMap);
+    } catch (error) {
+      console.error("Tracking fetch error:", error);
+    }
+  };
 
   useEffect(() => {
     const fetchHabits = async () => {
@@ -353,33 +352,17 @@ export default function HabitGrid() {
         )}
       </Card>
 
-      <AlertDialog
+      <ConfirmDialog
         open={deleteConfirm.open}
-        onOpenChange={(open) => {
-          if (!open) setDeleteConfirm({ open: false, habit: null, id: null });
-        }}
-      >
-        <AlertDialogContent className="bg-white border-gray-200">
-          <AlertDialogTitle className="text-gray-900">
-            Delete habit?
-          </AlertDialogTitle>
-          <AlertDialogDescription className="text-gray-600">
-            Are you sure you want to delete "{deleteConfirm.habit}"? This action
-            cannot be undone.
-          </AlertDialogDescription>
-          <div className="flex gap-3 justify-end">
-            <AlertDialogCancel className="border-gray-200 text-gray-900">
-              Cancel
-            </AlertDialogCancel>
-            <AlertDialogAction
-              onClick={confirmDelete}
-              className="bg-red-600 hover:bg-red-700 text-white"
-            >
-              Delete
-            </AlertDialogAction>
-          </div>
-        </AlertDialogContent>
-      </AlertDialog>
+        setOpen={(open) =>
+          !open && setDeleteConfirm({ open: false, habit: null, id: null })
+        }
+        title="Delete habit?"
+        description={`Are you sure you want to delete "${deleteConfirm.habit}"? This action cannot be undone.`}
+        confirmText="Delete"
+        variant="destructive"
+        onConfirm={confirmDelete}
+      />
     </>
   );
 }

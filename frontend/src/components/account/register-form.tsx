@@ -2,14 +2,44 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setpass] = useState("");
+  const { toast } = useToast();
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    try{
+      const res=await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}api/register`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          name:name,
+          email:email,
+          password:pass
+        })
+      })
+
+      if(res.ok){
+        toast({
+          title:"Registration successful!",
+          description:"Welcome to DailyXP!"
+        })
+        router.push("/dashboard")
+      }
+    }catch(err){
+      toast({
+        title:"Registration failed!",
+        description:"Please try again later."
+      })
+      console.error("Register error:",err)
+    }
   };
 
   return (
