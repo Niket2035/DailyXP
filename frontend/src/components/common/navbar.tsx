@@ -53,6 +53,7 @@ export default function Navbar() {
             </Link>
           </div>
           <div className="flex items-center gap-4">
+            <Link href={'/account/login'}>
             <Button
               variant="ghost"
               size="icon"
@@ -66,6 +67,7 @@ export default function Navbar() {
                 <User className="h-5 w-5 text-gray-700" />
               )}
             </Button>
+            </Link>
 
             <Button
               variant="ghost"

@@ -1,7 +1,7 @@
 "use client";
-
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");      
@@ -9,6 +9,25 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    try{
+      const res=await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}api/login`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          email:email,
+          password:pass
+        })
+      })
+      if(res.ok){
+        console.log(res);
+        toast.success("Login successful!")
+        window.location.href="/dashboard"
+      }
+    }catch(err){
+      toast.error("Login failed!")
+      console.error("Login error:",err)
+    }
   };
 
   return (

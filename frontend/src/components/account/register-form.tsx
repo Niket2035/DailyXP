@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useState } from "react";
+import { toast } from "sonner";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -10,6 +11,29 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+
+    try{
+      const res=await fetch(`${process.env.NEXT_PUBLIC_SERVER_URL}api/register`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({
+          name:name,
+          email:email,
+          password:pass
+        })
+      })
+      const data = await res.json();
+      console.log("Response:", data);
+      
+      if(res.ok){
+        toast.success("Registration successful!")
+        window.location.href="/dashboard"
+      }
+      console.log(res);
+    }catch(err){
+      toast.error("Registration failed!")
+      console.error("Register error:",err)
+    }
   };
 
   return (
