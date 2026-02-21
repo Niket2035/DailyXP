@@ -2,12 +2,13 @@
 
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setpass] = useState("");
+  const { toast } = useToast();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,16 +23,19 @@ export default function RegisterPage() {
           password:pass
         })
       })
-      const data = await res.json();
-      console.log("Response:", data);
-      
+
       if(res.ok){
-        toast.success("Registration successful!")
-        window.location.href="/dashboard"
+        toast({
+          title:"Registration successful!",
+          description:"Welcome to DailyXP!"
+        })
+       console.log(res);
       }
-      console.log(res);
     }catch(err){
-      toast.error("Registration failed!")
+      toast({
+        title:"Registration failed!",
+        description:"Please try again later."
+      })
       console.error("Register error:",err)
     }
   };

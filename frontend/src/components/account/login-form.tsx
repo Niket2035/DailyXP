@@ -1,11 +1,13 @@
 "use client";
 import Link from "next/link";
 import { useState } from "react";
-import { toast } from "sonner";
+import { useToast } from "@/hooks/use-toast";
+import router from "next/router";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");      
-  const [pass, setpass] = useState("");      
+  const [pass, setpass] = useState("");    
+  const { toast } = useToast();  
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -20,12 +22,18 @@ export default function LoginPage() {
         })
       })
       if(res.ok){
-        console.log(res);
-        toast.success("Login successful!")
-        window.location.href="/dashboard"
+        toast({
+          title:"Login successful!",
+          description:"Welcome back!"
+        })
+       console.log(res);
+        window.location.href="/"; 
       }
     }catch(err){
-      toast.error("Login failed!")
+      toast({
+        title:"Login failed!",
+        description:"Please check your credentials and try again."
+      })
       console.error("Login error:",err)
     }
   };
