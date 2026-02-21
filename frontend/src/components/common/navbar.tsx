@@ -6,11 +6,29 @@ import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import logo from "../../assets/DailyXP logo.png";
 import Link from "next/link";
+import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
+import ConfirmDialog from "./ConfirmDialog";
 
 export default function Navbar() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
   const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
+  const [user, setUser] = useState<any>(null);
+  const [logoutOpen, setLogoutOpen] = useState(false);
+  const { toast } = useToast();
+  const router = useRouter();
+
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const userData = localStorage.getItem("user");
+
+    setIsLoggedIn(!!token);
+
+    if (userData) {
+      setUser(JSON.parse(userData));
+    }
+  }, []);
 
   useEffect(() => {
     setMounted(true);
@@ -30,8 +48,19 @@ export default function Navbar() {
     }
   };
 
-  const toggleLogin = () => {
-    setIsLoggedIn(!isLoggedIn);
+  const handleLogout = () => {
+    localStorage.removeItem("token");
+    localStorage.removeItem("user");
+
+    setIsLoggedIn(false);
+    setUser(null);
+
+    toast({
+      title: "Logged out",
+      description: "You have been successfully logged out.",
+    });
+
+    router.push("/account/login");
   };
 
   if (!mounted) return null;
@@ -42,49 +71,58 @@ export default function Navbar() {
         <div className="flex items-center justify-between">
           <div className="flex items-center">
             <Link href={"/"}>
-            <Image
-              src={logo}
-              alt="DailyXP"
-              width={180}
-              height={180}
-              className="rounded-md"
-              priority
-            />
+              <Image
+                src={logo}
+                alt="DailyXP"
+                width={180}
+                height={180}
+                className="rounded-md"
+                priority
+              />
             </Link>
           </div>
           <div className="flex items-center gap-4">
-            <Link href={'/account/login'}>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleLogin}
-              className="rounded-full hover:bg-gray-100"
-              title={isLoggedIn ? "Logout" : "Login"}
-            >
-              {isLoggedIn ? (
-                <LogOut className="h-5 w-5 text-gray-700" />
-              ) : (
-                <User className="h-5 w-5 text-gray-700" />
-              )}
-            </Button>
-            </Link>
+            {!isLoggedIn ? (
+              <Link href="/account/login">
+                <Button variant="ghost" size="icon">
+                  <User className="h-5 w-5 text-gray-700" />
+                </Button>
+              </Link>
+            ) : (
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 rounded-full bg-blue-500 text-white flex items-center justify-center font-semibold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
 
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={toggleTheme}
-              className="rounded-full hover:bg-gray-100"
-              title="Toggle theme"
-            >
-              {theme === "light" ? (
-                <Moon className="h-5 w-5 text-gray-700" />
-              ) : (
-                <Sun className="h-5 w-5 text-gray-700" />
-              )}
+                <span className="text-sm font-medium text-gray-700">
+                  {user?.name}
+                </span>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setLogoutOpen(true)}
+                  className="hover:bg-red-100"
+                >
+                  <LogOut className="h-5 w-5 text-red-600" />
+                </Button>
+              </div>
+            )}
+
+            <Button variant="ghost" size="icon" onClick={toggleTheme}>
+              {theme === "light" ? <Moon /> : <Sun />}
             </Button>
           </div>
         </div>
       </div>
+      <ConfirmDialog
+        open={logoutOpen}
+        setOpen={setLogoutOpen}
+        title="Logout?"
+        description="Are you sure you want to logout?"
+        confirmText="Logout"
+        variant="destructive"
+        onConfirm={handleLogout}
+      />
     </nav>
   );
 }

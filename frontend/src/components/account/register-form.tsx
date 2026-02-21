@@ -3,12 +3,14 @@
 import Link from "next/link";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { useRouter } from "next/navigation";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [pass, setpass] = useState("");
   const { toast } = useToast();
+  const router = useRouter();
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -29,7 +31,7 @@ export default function RegisterPage() {
           title:"Registration successful!",
           description:"Welcome to DailyXP!"
         })
-       console.log(res);
+        router.push("/dashboard")
       }
     }catch(err){
       toast({
