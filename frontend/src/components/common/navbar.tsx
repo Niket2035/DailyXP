@@ -9,26 +9,15 @@ import Link from "next/link";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
 import ConfirmDialog from "./ConfirmDialog";
+import { useAuth } from "@/context/AuthContext";
 
 export default function Navbar() {
   const [theme, setTheme] = useState<"light" | "dark">("light");
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [mounted, setMounted] = useState(false);
-  const [user, setUser] = useState<any>(null);
   const [logoutOpen, setLogoutOpen] = useState(false);
   const { toast } = useToast();
   const router = useRouter();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const userData = localStorage.getItem("user");
-
-    setIsLoggedIn(!!token);
-
-    if (userData) {
-      setUser(JSON.parse(userData));
-    }
-  }, []);
+  const { user, isLoggedIn, logout } = useAuth();
 
   useEffect(() => {
     setMounted(true);
@@ -49,12 +38,7 @@ export default function Navbar() {
   };
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-
-    setIsLoggedIn(false);
-    setUser(null);
-
+    logout(); // Clear auth context and localStorage
     toast({
       title: "Logged out",
       description: "You have been successfully logged out.",

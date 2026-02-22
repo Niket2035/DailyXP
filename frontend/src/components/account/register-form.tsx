@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useRouter } from "next/navigation";
+import { useAuth } from "@/context/AuthContext";
 
 export default function RegisterPage() {
   const [name, setName] = useState("");
@@ -11,6 +12,7 @@ export default function RegisterPage() {
   const [pass, setpass] = useState("");
   const { toast } = useToast();
   const router = useRouter();
+  const { login } = useAuth();// login function from context
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -26,13 +28,17 @@ export default function RegisterPage() {
         })
       })
 
-      if(res.ok){
+      const daata=await res.json();
+
+       if (!res.ok) throw new Error(daata.message || "Registration failed");
+      login(daata.user, daata.token); // Update context with user data and token
+
         toast({
           title:"Registration successful!",
           description:"Welcome to DailyXP!"
         })
-        router.push("/dashboard")
-      }
+        router.push("/")
+      
     }catch(err){
       toast({
         title:"Registration failed!",
