@@ -34,6 +34,7 @@ export default function AddSleepCard({
         method: "POST",
         headers: {
           "content-type": "application/json",
+          Authorization: `Bearer ${localStorage.getItem("token")}`,
         },
         body: JSON.stringify({
           hoursSlept: parseFloat(sleepHours),

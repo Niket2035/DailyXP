@@ -53,6 +53,11 @@ export default function SleepPage() {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_SERVER_URL}api/sleepTrackers`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
         );
 
         if (!res.ok) throw new Error("Failed to fetch sleep data");
@@ -127,9 +132,9 @@ export default function SleepPage() {
   const averageSleep =
     sleepData.length > 0
       ? (
-          sleepData.reduce((sum, item) => sum + item.hours, 0) /
-          sleepData.length
-        ).toFixed(1)
+        sleepData.reduce((sum, item) => sum + item.hours, 0) /
+        sleepData.length
+      ).toFixed(1)
       : "0";
 
   const daysTracked = sleepData.filter((d) => d.hours > 0).length;

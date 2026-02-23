@@ -22,7 +22,9 @@ export default function AddHabitDialog({
           method: "POST",
           headers: {
             "content-type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
+
           body: JSON.stringify({
             name: title,
             status: "pending",

@@ -112,6 +112,11 @@ export default function HabitGrid() {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/tracking/month?month=${month}&year=${year}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
+        },
       );
 
       if (!res.ok) throw new Error("Failed to fetch tracking");
@@ -143,6 +148,11 @@ export default function HabitGrid() {
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits`,
+          {
+            headers: {
+              Authorization: `Bearer ${localStorage.getItem("token")}`,
+            },
+          },
         );
 
         if (!res.ok) throw new Error("Failed to fetch habits");
@@ -185,6 +195,9 @@ export default function HabitGrid() {
         `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/${deleteConfirm.id}`,
         {
           method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
+          },
         },
       );
 
@@ -229,6 +242,7 @@ export default function HabitGrid() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
+            Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
           body: JSON.stringify({
             habitId,
@@ -300,11 +314,10 @@ export default function HabitGrid() {
                 {allDays.map((dayObj) => (
                   <TableHead
                     key={`day-${dayObj.day}`}
-                    className={`text-center min-w-[40px] text-xs font-medium ${
-                      dayObj.isToday
+                    className={`text-center min-w-[40px] text-xs font-medium ${dayObj.isToday
                         ? "text-blue-600 font-bold"
                         : "text-gray-600"
-                    }`}
+                      }`}
                   >
                     {dayObj.day}
                   </TableHead>
@@ -315,11 +328,10 @@ export default function HabitGrid() {
                 {allDays.map((dayObj) => (
                   <TableHead
                     key={`dayname-${dayObj.day}`}
-                    className={`text-center min-w-[40px] text-xs font-semibold ${
-                      dayObj.isToday
+                    className={`text-center min-w-[40px] text-xs font-semibold ${dayObj.isToday
                         ? "text-blue-600 font-bold bg-blue-50"
                         : "text-gray-500"
-                    }`}
+                      }`}
                   >
                     {dayObj.dayName}
                   </TableHead>
