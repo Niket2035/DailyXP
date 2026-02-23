@@ -1,6 +1,7 @@
 import { model, Mongoose, Schema } from "mongoose";
 
 const HabitsTrackingSchema = new Schema({
+  UserId: { type: Schema.Types.ObjectId, ref: "User", required: true },
   habitId: { type: Schema.Types.ObjectId, ref: "Habits", required: true },
   date: { type: Date, required: true },
   status: {
