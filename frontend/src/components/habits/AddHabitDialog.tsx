@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
 import { on } from "events";
+import { toast } from "@/hooks/use-toast";
 
 export default function AddHabitDialog({
   onAdd,
@@ -24,7 +25,6 @@ export default function AddHabitDialog({
             "content-type": "application/json",
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
-
           body: JSON.stringify({
             name: title,
             status: "pending",
@@ -32,14 +32,26 @@ export default function AddHabitDialog({
           }),
         },
       );
-      const data = await res.json();
+
+      if (res.status == 401) {
+        toast({
+          title: "Login required",
+          description: "Please login first to continue.",
+          variant: "destructive",
+        });
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        window.location.href = "/account/login";
+
+        throw new Error("Unauthorized");
+      }
       onAdd(title);
       setTitle("");
     } catch (error) {
       console.error("Error adding habit:", error);
     }
   };
-
 
   return (
     <div className="flex gap-2 w-full md:w-auto">

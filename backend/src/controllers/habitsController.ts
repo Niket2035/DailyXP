@@ -1,6 +1,13 @@
 import { Request, Response } from "express";
 import Habits from "../models/habitsModel";
 
+const defaultHabits = [
+  { name: "Drink Water" },
+  { name: "Exercise" },
+  { name: "Read 10 pages" },
+  { name: "Sleep 8 hours" },
+];
+
 export const createHabit = async (req: Request, res: Response) => {
   try {
     if (!req.user) {

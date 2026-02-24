@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Plus } from "lucide-react";
 import { useEffect, useState } from "react";
 import { on } from "events";
+import { toast } from "@/hooks/use-toast";
 
 export default function AddSleepCard({
   sleepHours,
@@ -41,8 +42,19 @@ export default function AddSleepCard({
           sleepdate: new Date().toISOString(),
         }),
       });
-      if (!res.ok) {
-        throw new Error("Failed to add sleep entry");
+
+      if (res.status == 401) {
+        toast({
+          title: "Login required",
+          description: "Please login first to continue.",
+          variant: "destructive",
+        });
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+
+        window.location.href = "/account/login";
+
+        throw new Error("Unauthorized");
       }
       onAdd();
       console.log("Sleep entry added successfully");
