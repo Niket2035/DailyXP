@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Table,
   TableBody,
@@ -10,20 +10,16 @@ import {
 } from "@/components/ui/table";
 import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import AddHabitDialog from "./AddHabitDialog";
 import HabitRow from "./HabitRow";
 import { Habit } from "@/types/Habit";
 import ConfirmDialog from "../common/ConfirmDialog";
+import { useAuth } from "@/context/AuthContext";
 
 const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+const defaultGuestHabits = ["Drink Water", "Morning Walk", "Read 10 Pages"];
+type DayStatus = "missed" | "partial" | "complete";
+type TrackingItem = { date: string; status: DayStatus; habitId: string };
 
 const getMonthDaysAndWeeks = () => {
   const now = new Date();
@@ -31,11 +27,8 @@ const getMonthDaysAndWeeks = () => {
   const month = now.getMonth();
   const today = now.getDate();
 
-  const firstDay = new Date(year, month, 1);
   const lastDay = new Date(year, month + 1, 0);
   const daysInMonth = lastDay.getDate();
-  const startingDayOfWeek = firstDay.getDay();
-
   const allDays: Array<{ day: number; dayName: string; isToday: boolean }> = [];
 
   for (let i = 1; i <= daysInMonth; i++) {
@@ -62,6 +55,7 @@ const getMonthDaysAndWeeks = () => {
 
 export default function HabitGrid() {
   const { allDays, weeks, today, month, year } = getMonthDaysAndWeeks();
+  const { isLoggedIn } = useAuth();
 
   const monthName = new Date(year, month).toLocaleString("default", {
     month: "long",
@@ -77,11 +71,19 @@ export default function HabitGrid() {
     id: null,
   });
   const { toast } = useToast();
-  type DayStatus = "missed" | "partial" | "complete";
 
   const [checked, setChecked] = useState<
     Record<string, Record<number, DayStatus>>
   >({});
+  const isGuestMode = !isLoggedIn;
+
+  const getDefaultHabits = (): Habit[] =>
+    defaultGuestHabits.map((name, index) => ({
+      _id: `guest-habit-${index + 1}`,
+      name,
+      status: "pending",
+      date: new Date().toISOString(),
+    }));
 
   // const fetchTracking = async (habitId: string) => {
   //   try {
@@ -108,7 +110,7 @@ export default function HabitGrid() {
   //   }
   // };
 
-  const fetchTracking = async () => {
+  const fetchTracking = useCallback(async () => {
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/tracking/month?month=${month}&year=${year}`,
@@ -121,11 +123,11 @@ export default function HabitGrid() {
 
       if (!res.ok) throw new Error("Failed to fetch tracking");
 
-      const data = await res.json();
+      const data: TrackingItem[] = await res.json();
 
       const trackingMap: Record<string, Record<number, DayStatus>> = {};
 
-      data.forEach((item: any) => {
+      data.forEach((item) => {
         const dateObj = new Date(item.date);
         const day = dateObj.getDate();
         const habitId = item.habitId;
@@ -141,10 +143,16 @@ export default function HabitGrid() {
     } catch (error) {
       console.error("Tracking fetch error:", error);
     }
-  };
+  }, [month, year]);
 
   useEffect(() => {
     const fetchHabits = async () => {
+      if (isGuestMode) {
+        setHabits(getDefaultHabits());
+        setChecked({});
+        return;
+      }
+
       try {
         const res = await fetch(
           `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits`,
@@ -165,7 +173,7 @@ export default function HabitGrid() {
       }
     };
     fetchHabits();
-  }, []);
+  }, [fetchTracking, isGuestMode]);
 
   const addHabit = (title: string) => {
     const newHabit: Habit = {
@@ -177,7 +185,7 @@ export default function HabitGrid() {
     setHabits((prev) => [...prev, newHabit]);
     toast({
       title: "Habit added",
-      description: `"${title}" has been added to your habits.`,
+      description: `"${title}" has been added to your habits${isGuestMode ? " (guest mode)." : "."}`,
     });
   };
 
@@ -190,6 +198,24 @@ export default function HabitGrid() {
   };
   const confirmDelete = async () => {
     if (deleteConfirm.id === null) return;
+
+    if (isGuestMode) {
+      setHabits((prev) =>
+        prev.filter((habit) => habit._id !== deleteConfirm.id),
+      );
+      setChecked((prev) => {
+        const updated = { ...prev };
+        delete updated[deleteConfirm.id as string];
+        return updated;
+      });
+      toast({
+        title: "Habit deleted",
+        description: `"${deleteConfirm.habit}" has been removed.`,
+      });
+      setDeleteConfirm({ open: false, habit: null, id: null });
+      return;
+    }
+
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits/${deleteConfirm.id}`,
@@ -232,6 +258,17 @@ export default function HabitGrid() {
     if (currentStatus === "missed") nextStatus = "partial";
     else if (currentStatus === "partial") nextStatus = "complete";
     else nextStatus = "missed";
+
+    if (isGuestMode) {
+      setChecked((prev) => ({
+        ...prev,
+        [habitId]: {
+          ...prev[habitId],
+          [day]: nextStatus,
+        },
+      }));
+      return;
+    }
 
     try {
       const selectedDate = new Date(year, month, day);
@@ -285,7 +322,7 @@ export default function HabitGrid() {
             </p>
           </div>
           <div className="mr-20">
-            <AddHabitDialog onAdd={addHabit} />
+            <AddHabitDialog onAdd={addHabit} isGuestMode={isGuestMode} />
           </div>
         </div>
 
@@ -340,7 +377,7 @@ export default function HabitGrid() {
             </TableHeader>
 
             <TableBody>
-              {habits.map((h, i) => (
+              {habits.map((h) => (
                 <HabitRow
                   key={h._id}
                   habit={h.name}
