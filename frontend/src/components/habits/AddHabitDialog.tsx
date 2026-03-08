@@ -4,18 +4,24 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Plus } from "lucide-react";
-import { on } from "events";
 import { toast } from "@/hooks/use-toast";
 
 export default function AddHabitDialog({
   onAdd,
+  isGuestMode = false,
 }: {
   onAdd: (title: string) => void;
+  isGuestMode?: boolean;
 }) {
   const [title, setTitle] = useState("");
 
   const postHabits = async () => {
     if (!title.trim()) return;
+    if (isGuestMode) {
+      onAdd(title.trim());
+      setTitle("");
+      return;
+    }
     try {
       const res = await fetch(
         `${process.env.NEXT_PUBLIC_SERVER_URL}api/habits`,
@@ -59,7 +65,7 @@ export default function AddHabitDialog({
         placeholder="New habit..."
         value={title}
         onChange={(e) => setTitle(e.target.value)}
-        onKeyPress={(e) => e.key === "Enter" && postHabits()}
+        onKeyDown={(e) => e.key === "Enter" && postHabits()}
         className="flex-1 md:flex-none min-w-[180px] border-gray-300 bg-white text-gray-900 placeholder-gray-400"
       />
       <Button
